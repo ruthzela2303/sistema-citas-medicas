@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔐 API ENDPOINT: Lógica de Login Real consultando a MySQL con índice limpio
+// 🔐 API ENDPOINT: Lógica de Login Real consultando a MySQL con índice limpio [0]
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const query = 'SELECT id, nombre, rol, contrasena FROM usuarios WHERE correo = ?';
@@ -49,7 +49,7 @@ app.post('/api/login', (req, res) => {
         }
 
         if (results && results.length > 0) {
-            const usuario = results[0]; // Tomamos el primer registro de la lista de resultados
+            const usuario = results[0]; // ¡Arreglado aquí para leer la lista de la nube!
 
             if (usuario.contrasena === password) {
                 return res.json({
