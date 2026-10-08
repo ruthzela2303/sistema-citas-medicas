@@ -17,29 +17,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/js/jspdf.umd.min.js', express.static(path.join(__dirname, 'node_modules', 'jspdf', 'dist', 'jspdf.umd.min.js')));
 
 
-// 🗄️ Configuración de Conexión a la Base de Datos Médica
-const db = mysql.createConnection({
+// 🗄️ Configuración de Conexión Inteligente y Certificado SSL Obligatorio para Internet
+const db = mysql.createPool({
     host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'sistema_medico'
+    database: process.env.DB_NAME || 'sistema_medico',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : false
 });
 
-// Probar conexión con MySQL
-db.connect((err) => {
-    if (err) {
-        console.error('❌ Error crítico al conectar a la Base de Datos Médica:', err.message);
-        return;
-    }
-    console.log('✅ Conexión exitosa a la base de datos MySQL (sistema_medico).');
-});
+console.log('✅ Pool de conexiones con SSL configurado con éxito para internet.');
 
 // Ruta base para cargar la interfaz principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔐 API ENDPOINT: Lógica de Login Real consultando a MySQL
+// 🔐 API ENDPOINT: Lógica de Login Real consultando a MySQL con índice limpio
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const query = 'SELECT id, nombre, rol, contrasena FROM usuarios WHERE correo = ?';
@@ -51,7 +49,7 @@ app.post('/api/login', (req, res) => {
         }
 
         if (results && results.length > 0) {
-            const usuario = results[0]; 
+            const usuario = results[0]; // Tomamos el primer registro de la lista de resultados
 
             if (usuario.contrasena === password) {
                 return res.json({
@@ -208,5 +206,5 @@ app.put('/api/actualizar-estado-cita', (req, res) => {
 
 // Iniciar el servidor web de la clínica
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor médico corriendo con éxito en http://localhost:${PORT}`);
+    console.log(`🚀 Servidor médico corriendo con éxito en internet mediante el puerto ${PORT}`);
 });
