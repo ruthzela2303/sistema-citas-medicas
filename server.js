@@ -37,10 +37,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔐 API ENDPOINT: Lógica de Login Real consultando a MySQL con índice limpio [0]
+// 🔐 API ENDPOINT: Lógica de Login Real consultando a Usuarios (Corregido con Mayúscula)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
-    const query = 'SELECT id, nombre, rol, contrasena FROM usuarios WHERE correo = ?';
+    const query = 'SELECT id, nombre, rol, contrasena FROM Usuarios WHERE correo = ?';
 
     db.query(query, [email], (err, results) => {
         if (err) {
@@ -49,7 +49,7 @@ app.post('/api/login', (req, res) => {
         }
 
         if (results && results.length > 0) {
-            const usuario = results[0]; // ¡Arreglado aquí para leer la lista de la nube!
+            const usuario = results[0]; 
 
             if (usuario.contrasena === password) {
                 return res.json({
@@ -67,9 +67,9 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// 👨‍⚕️ API ENDPOINT: Obtener el listado de médicos especialistas de la clínica
+// 👨‍⚕️ API ENDPOINT: Obtener el listado de médicos de la tabla Medicos (Corregido con Mayúscula)
 app.get('/api/medicos', (req, res) => {
-    const query = 'SELECT id, nombre, especialidad, consultorio FROM medicos';
+    const query = 'SELECT id, nombre, especialidad, consultorio FROM Medicos';
 
     db.query(query, (err, results) => {
         if (err) {
@@ -81,7 +81,7 @@ app.get('/api/medicos', (req, res) => {
     });
 });
 
-// 📅 API ENDPOINT: Registrar una nueva cita médica en la base de datos
+// 📅 API ENDPOINT: Registrar una nueva cita médica en la tabla citas
 app.post('/api/matricular-cita', (req, res) => {
     const { id_paciente, id_medico, fecha, hora } = req.body;
 
@@ -100,7 +100,7 @@ app.post('/api/matricular-cita', (req, res) => {
     });
 });
 
-// 📋 API ENDPOINT CORREGIDO: Alias ajustados exactamente al mapeo del Frontend (dashboard.html)
+// 📋 API ENDPOINT CORREGIDO: Relaciones ajustadas exactamente a Usuarios y Medicos
 app.get('/api/citas-globales', (req, res) => {
     const query = `
         SELECT 
@@ -112,8 +112,8 @@ app.get('/api/citas-globales', (req, res) => {
             c.hora, 
             c.estado 
         FROM citas c
-        INNER JOIN usuarios u ON c.id_paciente = u.id
-        INNER JOIN medicos m ON c.id_medico = m.id
+        INNER JOIN Usuarios u ON c.id_paciente = u.id
+        INNER JOIN Medicos m ON c.id_medico = m.id
         ORDER BY c.fecha ASC, c.hora ASC
     `;
 
@@ -127,9 +127,9 @@ app.get('/api/citas-globales', (req, res) => {
     });
 });
 
-// 📊 API ENDPOINT UNIFICADO: Cuenta especialistas totales y el total absoluto de citas del hospital
+// 📊 API ENDPOINT UNIFICADO: Conteo estadístico referenciando las tablas en mayúsculas
 app.get('/api/estadisticas-medicas', (req, res) => {
-    const queryMedicos = 'SELECT COUNT(*) AS total_medicos FROM medicos';
+    const queryMedicos = 'SELECT COUNT(*) AS total_medicos FROM Medicos';
     const queryCitasTotales = 'SELECT COUNT(*) AS total_citas FROM citas';
 
     db.query(queryMedicos, (err, resMedicos) => {
@@ -158,14 +158,14 @@ app.get('/api/estadisticas-medicas', (req, res) => {
     });
 });
 
-// 👤 API ENDPOINT NUEVO: Obtener las citas exclusivas del paciente agendadas estrictamente para el día de hoy
+// 👤 API ENDPOINT NUEVO: Citas de hoy enlazando con la tabla Medicos
 app.get('/api/mis-citas-hoy/:id_paciente', (req, res) => {
     const idPaciente = req.params.id_paciente;
 
     const query = `
         SELECT c.id, m.nombre AS medico, m.especialidad, DATE_FORMAT(c.fecha, '%Y-%m-%d') AS fecha, c.hora, c.estado 
         FROM citas c
-        INNER JOIN medicos m ON c.id_medico = m.id
+        INNER JOIN Medicos m ON c.id_medico = m.id
         WHERE c.id_paciente = ? AND c.fecha = CURDATE()
         ORDER BY c.hora ASC
     `;
@@ -180,7 +180,7 @@ app.get('/api/mis-citas-hoy/:id_paciente', (req, res) => {
     });
 });
 
-// 🔄 API ENDPOINT: Cambiar el estado de una cita médica (Completada, Cancelada, Pendiente) con confirmación JSON limpia
+// 🔄 API ENDPOINT: Cambiar el estado de una cita médica
 app.put('/api/actualizar-estado-cita', (req, res) => {
     const { id_cita, nuevo_estado } = req.body;
 
@@ -203,6 +203,12 @@ app.put('/api/actualizar-estado-cita', (req, res) => {
         });
     });
 });
+
+// Iniciar el servidor web de la clínica
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor médico corriendo con éxito en internet mediante el puerto ${PORT}`);
+});
+
 
 // Iniciar el servidor web de la clínica
 app.listen(PORT, () => {
