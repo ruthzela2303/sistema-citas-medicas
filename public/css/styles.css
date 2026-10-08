@@ -100,3 +100,33 @@ body {
 .btn-primary:active {
     transform: scale(0.98);
 }
+
+
+
+
+/* --- ARREGLO PARA CELULAR --- */
+@media (max-width: 768px) {
+  header, .navbar, .top-bar {
+    flex-direction: column !important;
+    text-align: center;
+    padding: 10px !important;
+  }
+
+  h1 {
+    font-size: 1.4rem !important;
+    white-space: normal !important;
+  }
+
+  /* Que la tabla no se salga */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+
+  /* Las tarjetas de 23 especialistas */
+  .cards, .stats-container {
+    grid-template-columns: 1fr !important;
+  }
+}
