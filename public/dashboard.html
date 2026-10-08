@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <style>
         * { box-sizing: border-box; }
+        body { overflow-x: hidden; }
         body, main, section, div, tr, td, h2, h3, h4, p, select, input, button {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
@@ -18,19 +19,19 @@
         body.dark-mode tr { border-bottom-color: #334155!important; }
         body.dark-mode #mis-citas-hoy-lista div { background-color: #1e293b!important; border-color: #334155!important; }
 
-        /* ===== FIX DEFINITIVO CELULAR ===== */
+        /* ===== FIX DEFINITIVO CELULAR - NO SE CORTA NADA ===== */
         @media (max-width: 768px) {
          .navbar {
             flex-wrap: wrap!important;
             padding: 12px 15px!important;
             gap: 10px!important;
             justify-content: center!important;
+            width: 100%!important;
           }
          .navbar h1 {
-            font-size: 1.05rem!important;
+            font-size: 1.1rem!important;
             width: 100%!important;
             text-align: center!important;
-            white-space: normal!important;
           }
          .user-info {
             width: 100%!important;
@@ -40,12 +41,16 @@
           }
           #user-name { font-size: 0.85rem!important; width: 100%; text-align: center; }
          .dashboard-container {
-            margin-top: 130px!important;
+            width: 100%!important;
+            max-width: 100%!important;
+            margin: 140px 0 20px 0!important;
             padding: 0 12px!important;
           }
-         .stats-container { flex-direction: column!important; }
-         .stat-card { min-width: 100%!important; }
-          table { display: block!important; width: 100%!important; overflow-x: auto!important; }
+         .welcome-section { padding: 0 5px!important; }
+         .stats-container { flex-direction: column!important; gap: 12px!important; }
+         .stat-card { min-width: 100%!important; width: 100%!important; }
+          #vista-paciente, #vista-administrador { padding: 20px 12px!important; width: 100%!important; }
+          table { display: block!important; width: 100%!important; overflow-x: auto!important; white-space: nowrap!important; }
         }
     </style>
 </head>
@@ -53,9 +58,9 @@
     <header class="navbar" style="background-color: #1e3a8a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; box-sizing: border-box;">
         <h1 style="font-size: 1.4rem;">🏥 Portal Clínico Sanitas</h1>
         <div class="user-info" style="display: flex; align-items: center; gap: 20px;">
-            <button id="btn-theme" style="background: none; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">🌙 Modo Oscuro</button>
+            <button id="btn-theme" style="background: none; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">🌙 Modo Oscuro</button>
             <span id="user-name" style="font-weight: 600;">Cargando usuario...</span>
-            <a href="index.html" id="btn-logout" style="color: #f87171; text-decoration: none; font-weight: 600; border: 1px solid #f87171; padding: 6px 12px; border-radius: 6px; transition: all 0.2s;">Cerrar Sesión</a>
+            <a href="index.html" id="btn-logout" style="color: #f87171; text-decoration: none; font-weight: 600; border: 1px solid #f87171; padding: 6px 12px; border-radius: 6px;">Cerrar Sesión</a>
         </div>
     </header>
     <main class="dashboard-container" style="max-width: 1200px; margin: 100px auto 40px; padding: 0 20px;">
@@ -83,7 +88,7 @@
                 </div>
                 <button type="submit" style="background: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">Confirmar Reserva Médica</button>
             </form>
-            <div style="margin-top: 35px; border-top: 2px solid #f1f5f9; padding-top: 20px;"><h3 style="color: #1e3a8a; margin-bottom: 15px;">📋 Mis Citas Programadas para Hoy</h3><div id="mis-citas-hoy-lista" style="display: flex; flex-direction: column; gap: 15px; width: 100%;"><p style="color: #64748b; font-size: 0.95rem;">Buscando tus consultas de hoy en la base de datos...</p></div></div>
+            <div style="margin-top: 35px; border-top: 2px solid #f1f5f9; padding-top: 20px;"><h3 style="color: #1e3a8a; margin-bottom: 15px;">📋 Mis Citas Programadas para Hoy</h3><div id="mis-citas-hoy-lista" style="display: flex; flex-direction: column; gap: 15px; width: 100%;"><p style="color: #64748b; font-size: 0.95rem;">Buscando tus consultas...</p></div></div>
         </section>
         <section id="vista-administrador" style="display: none; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
             <h3 style="color: #1e3a8a; margin-bottom: 20px;">📋 Control de Citas Médicas del Sistema</h3>
@@ -94,43 +99,43 @@
     </main>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-            const idUsuario = localStorage.getItem('usuario_id');
-            const nombreUsuario = localStorage.getItem('usuario_nombre');
-            const rolUsuario = localStorage.getItem('usuario_rol');
-            document.getElementById('btn-logout').addEventListener('click', () => { localStorage.clear(); });
-            const btnTheme = document.getElementById('btn-theme');
-            const currentTheme = localStorage.getItem('theme');
-            if (currentTheme === 'dark') { document.body.classList.add('dark-mode'); if (btnTheme) btnTheme.textContent = '☀️ Modo Claro'; }
-            if (btnTheme) {
-                btnTheme.addEventListener('click', () => {
-                    document.body.classList.toggle('dark-mode');
-                    if (document.body.classList.contains('dark-mode')) { localStorage.setItem('theme', 'dark'); btnTheme.textContent = '☀️ Modo Claro'; }
-                    else { localStorage.setItem('theme', 'light'); btnTheme.textContent = '🌙 Modo Oscuro'; }
-                });
-            }
-            if (!nombreUsuario ||!rolUsuario) { alert('Acceso restringido. Por favor, inicia sesión.'); window.location.href = 'index.html'; return; }
-            document.getElementById('user-name').textContent = `Bienvenido, ${nombreUsuario} (${rolUsuario})`;
-            cargarEstadisticasClinica();
-            if (rolUsuario === 'administrador') {
-                document.getElementById('dashboard-title').textContent = 'Panel de Administración Médica';
-                document.getElementById('dashboard-subtitle').textContent = 'Monitoreo global de la ocupación de consultorios de la clínica.';
-                document.getElementById('vista-administrador').style.display = 'block';
-                cargarCitasGlobalesAdmin(); configurarBuscadorAdmin(); configurarBotonPDF();
-            } else {
-                document.getElementById('dashboard-title').textContent = 'Portal del Paciente';
-                document.getElementById('dashboard-subtitle').textContent = 'Gestiona tus citas y reserva horarios con nuestros especialistas.';
-                document.getElementById('vista-paciente').style.display = 'block';
-                cargarMedicosDesplegable(); configurarFormularioReserva(idUsuario); cargarMisCitasHoy(idUsuario);
-            }
+    const idUsuario = localStorage.getItem('usuario_id');
+    const nombreUsuario = localStorage.getItem('usuario_nombre');
+    const rolUsuario = localStorage.getItem('usuario_rol');
+    document.getElementById('btn-logout').addEventListener('click', () => { localStorage.clear(); });
+    const btnTheme = document.getElementById('btn-theme');
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'dark') { document.body.classList.add('dark-mode'); if (btnTheme) btnTheme.textContent = '☀️ Modo Claro'; }
+    if (btnTheme) {
+        btnTheme.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) { localStorage.setItem('theme', 'dark'); btnTheme.textContent = '☀️ Modo Claro'; }
+            else { localStorage.setItem('theme', 'light'); btnTheme.textContent = '🌙 Modo Oscuro'; }
         });
-        async function cargarEstadisticasClinica() { try { const response = await fetch('/api/estadisticas-medicas'); const data = await response.json(); if (data.success) { document.getElementById('stat-medicos').textContent = data.totalMedicos; document.getElementById('stat-citas').textContent = data.totalCitasHoy; } } catch (error) { console.error('Error al conectar con la API de estadísticas:', error); } }
-        async function cargarMedicosDesplegable() { try { const response = await fetch('/api/medicos'); const data = await response.json(); const selectMedico = document.getElementById('select-medico'); if (!selectMedico) return; selectMedico.innerHTML = '<option value="">-- Seleccione un Especialista --</option>'; if (data.success && data.medicos.length > 0) { data.medicos.forEach(medico => { selectMedico.innerHTML += `<option value="${medico.id}">${medico.nombre} - ${medico.especialidad} (${medico.consultorio})</option>`; }); } } catch (error) { console.error('Error de red al cargar médicos:', error); } }
-        function configurarFormularioReserva(idPaciente) { const formReserva = document.getElementById('form-reserva'); if (!formReserva) return; formReserva.addEventListener('submit', async (e) => { e.preventDefault(); const idMedico = document.getElementById('select-medico').value; const fecha = document.getElementById('fecha-cita').value; const hora = document.getElementById('hora-cita').value; if (!idMedico) { alert('Por favor, selecciona un especialista médico.'); return; } try { const response = await fetch('/api/matricular-cita', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_paciente: idPaciente, id_medico: idMedico, fecha, hora }) }); const data = await response.json(); alert(data.message); if (data.success) { formReserva.reset(); cargarEstadisticasClinica(); cargarMisCitasHoy(idPaciente); } } catch (error) { console.error('Error al agendar la cita médica:', error); alert('Error de red al procesar tu reserva.'); } }); }
-        async function cargarCitasGlobalesAdmin() { try { const response = await fetch('/api/citas-globales'); const data = await response.json(); const tbody = document.getElementById('tabla-citas-body'); if (!tbody) return; tbody.innerHTML = ''; if (data.success && data.citas.length > 0) { data.citas.forEach(cita => { const fechaFormateada = cita.fecha.includes('T')? cita.fecha.split('T')[0] : cita.fecha; const pacienteReal = cita.paciente || cita.paciente_nombre || "Paciente"; const medicoReal = cita.medico || cita.medico_nombre || "Médico Especialista"; const especialidadReal = cita.especialidad || cita.medico_especialidad || "Medicina General"; tbody.innerHTML += `<tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 15px; font-size: 0.95rem; color: #1e293b;" colspan="4">👤 <strong>${pacienteReal}</strong> (${medicoReal}) <br>🩺 <em>${especialidadReal}</em> &nbsp;&nbsp;|&nbsp;&nbsp; 📅 <strong>${fechaFormateada}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; ⏰ <strong>${cita.hora}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; <select class="select-estado" data-id="${cita.id}" style="padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; background: #fff; border: 1px solid #cbd5e1; margin-top: 5px;"><option value="pendiente" ${cita.estado === 'pendiente'? 'selected' : ''}>⏳ Pendiente</option><option value="completada" ${cita.estado === 'completada'? 'selected' : ''}>✅ Se Atendió</option><option value="cancelada" ${cita.estado === 'cancelada'? 'selected' : ''}>❌ No Asistió</option></select></td></tr>`; }); escucharCambiosEstado(); } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 25px; color: #64748b;">No hay citas médicas registradas en el sistema.</td></tr>'; } } catch (error) { console.error('Error al cargar citas globales con diseño:', error); } }
-        function escucharCambiosEstado() { const selectores = document.querySelectorAll('.select-estado'); selectores.forEach(select => { select.addEventListener('change', async (e) => { const idCita = e.target.getAttribute('data-id'); const nuevoEstado = e.target.value; try { const response = await fetch('/api/actualizar-estado-cita', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_cita: idCita, nuevo_estado: nuevoEstado }) }); const data = await response.json(); alert(data.message); if (data.success) { cargarEstadisticasClinica(); } } catch (error) { console.error('Error al actualizar el estado de la cita:', error); alert('Error de red al intentar actualizar el estado.'); } }); }); }
-        function configurarBuscadorAdmin() { const searchInput = document.getElementById('search-input'); if (!searchInput) return; searchInput.addEventListener('input', (e) => { const term = e.target.value.toLowerCase().trim(); const rows = document.querySelectorAll('#tabla-citas-body tr'); rows.forEach(row => { const textContenido = row.textContent.toLowerCase(); if (textContenido.includes(term)) { row.style.display = ''; } else { row.style.display = 'none'; } }); }); }
-        async function cargarMisCitasHoy(idPaciente) { try { const response = await fetch(`/api/mis-citas-hoy/${idPaciente}`); const data = await response.json(); const contenedor = document.getElementById('mis-citas-hoy-lista'); if (!contenedor) return; contenedor.innerHTML = ''; if (data.success && data.citas.length > 0) { data.citas.forEach(cita => { contenedor.innerHTML += `<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 10px; border-left: 5px solid #10b981; display: flex; justify-content: space-between; align-items: center; width: 100%;"><div><h4 style="color: #14532d; margin-bottom: 4px;">👨‍⚕️ ${cita.medico}</h4><p style="color: #166534; font-size: 0.88rem;">🩺 Especialidad: <strong>${cita.especialidad}</strong></p><p style="color: #14532d; font-size: 0.9rem; margin-top: 5px;">📅 Fecha: <strong>${cita.fecha}</strong> (Hoy) &nbsp;|&nbsp; ⏰ Hora: <strong>${cita.hora}</strong></p></div><span style="background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">${cita.estado}</span></div>`; }); } else { contenedor.innerHTML = `<p style="color: #64748b; font-size: 0.95rem; text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; width: 100%;">🏖️ No tienes ninguna cita médica programada para el día de hoy.</p>`; } } catch (error) { console.error('Error al renderizar las citas diarias:', error); } }
-        function configurarBotonPDF() { const btnPdf = document.getElementById('btn-exportar-pdf'); if (!btnPdf) return; btnPdf.addEventListener('click', () => { const navbar = document.querySelector('.navbar'); const welcomeSection = document.querySelector('.welcome-section'); const statsContainer = document.querySelector('.stats-container'); const searchContainer = document.querySelector('.search-container'); const logoutBtn = document.getElementById('btn-logout'); if (navbar) navbar.style.display = 'none'; if (welcomeSection) welcomeSection.style.display = 'none'; if (statsContainer) statsContainer.style.display = 'none'; if (searchContainer) searchContainer.style.display = 'none'; if (btnPdf) btnPdf.style.display = 'none'; if (logoutBtn) logoutBtn.style.display = 'none'; const mainContainer = document.querySelector('.dashboard-container'); const headerImpresion = document.createElement('div'); headerImpresion.id = 'header-reporte-impresion'; headerImpresion.innerHTML = `<div style="text-align: center; margin-bottom: 30px; font-family: sans-serif; border-bottom: 3px solid #1e3a8a; padding-bottom: 15px;"><h1 style="color: #1e3a8a; margin: 0; font-size: 2rem;">🏥 PORTAL CLÍNICO SANITAS</h1><p style="color: #475569; margin: 5px 0 0; font-size: 1rem; font-weight: 600;">Reporte Oficial de Ocupación de Consultorios y Citas Médicas</p><p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">Fecha de Emisión: 07 de Octubre de 2026</p></div>`; if (mainContainer) mainContainer.insertBefore(headerImpresion, mainContainer.firstChild); window.print(); setTimeout(() => { if (navbar) navbar.style.display = 'flex'; if (welcomeSection) welcomeSection.style.display = 'block'; if (statsContainer) statsContainer.style.display = 'flex'; if (searchContainer) searchContainer.style.display = 'block'; if (btnPdf) btnPdf.style.display = 'inline-block'; if (logoutBtn) logoutBtn.style.display = 'inline-block'; if (headerImpresion) headerImpresion.remove(); }, 500); }); }
+    }
+    if (!nombreUsuario ||!rolUsuario) { alert('Acceso restringido. Por favor, inicia sesión.'); window.location.href = 'index.html'; return; }
+    document.getElementById('user-name').textContent = `Bienvenido, ${nombreUsuario} (${rolUsuario})`;
+    cargarEstadisticasClinica();
+    if (rolUsuario === 'administrador') {
+        document.getElementById('dashboard-title').textContent = 'Panel de Administración Médica';
+        document.getElementById('dashboard-subtitle').textContent = 'Monitoreo global de la ocupación de consultorios de la clínica.';
+        document.getElementById('vista-administrador').style.display = 'block';
+        cargarCitasGlobalesAdmin(); configurarBuscadorAdmin(); configurarBotonPDF();
+    } else {
+        document.getElementById('dashboard-title').textContent = 'Portal del Paciente';
+        document.getElementById('dashboard-subtitle').textContent = 'Gestiona tus citas y reserva horarios con nuestros especialistas.';
+        document.getElementById('vista-paciente').style.display = 'block';
+        cargarMedicosDesplegable(); configurarFormularioReserva(idUsuario); cargarMisCitasHoy(idUsuario);
+    }
+});
+async function cargarEstadisticasClinica() { try { const response = await fetch('/api/estadisticas-medicas'); const data = await response.json(); if (data.success) { document.getElementById('stat-medicos').textContent = data.totalMedicos; document.getElementById('stat-citas').textContent = data.totalCitasHoy; } } catch (error) {} }
+async function cargarMedicosDesplegable() { try { const response = await fetch('/api/medicos'); const data = await response.json(); const selectMedico = document.getElementById('select-medico'); if (!selectMedico) return; selectMedico.innerHTML = '<option value="">-- Seleccione un Especialista --</option>'; if (data.success && data.medicos.length > 0) { data.medicos.forEach(medico => { selectMedico.innerHTML += `<option value="${medico.id}">${medico.nombre} - ${medico.especialidad} (${medico.consultorio})</option>`; }); } } catch (error) {} }
+function configurarFormularioReserva(idPaciente) { const formReserva = document.getElementById('form-reserva'); if (!formReserva) return; formReserva.addEventListener('submit', async (e) => { e.preventDefault(); const idMedico = document.getElementById('select-medico').value; const fecha = document.getElementById('fecha-cita').value; const hora = document.getElementById('hora-cita').value; if (!idMedico) { alert('Por favor, selecciona un especialista médico.'); return; } try { const response = await fetch('/api/matricular-cita', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_paciente: idPaciente, id_medico: idMedico, fecha, hora }) }); const data = await response.json(); alert(data.message); if (data.success) { formReserva.reset(); cargarEstadisticasClinica(); cargarMisCitasHoy(idPaciente); } } catch (error) { alert('Error de red al procesar tu reserva.'); } }); }
+async function cargarCitasGlobalesAdmin() { try { const response = await fetch('/api/citas-globales'); const data = await response.json(); const tbody = document.getElementById('tabla-citas-body'); if (!tbody) return; tbody.innerHTML = ''; if (data.success && data.citas.length > 0) { data.citas.forEach(cita => { const fechaFormateada = cita.fecha.includes('T')? cita.fecha.split('T')[0] : cita.fecha; const pacienteReal = cita.paciente || cita.paciente_nombre || "Paciente"; const medicoReal = cita.medico || cita.medico_nombre || "Médico"; const especialidadReal = cita.especialidad || cita.medico_especialidad || "Medicina General"; tbody.innerHTML += `<tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 15px; font-size: 0.95rem; color: #1e293b;" colspan="4">👤 <strong>${pacienteReal}</strong> (${medicoReal}) <br>🩺 <em>${especialidadReal}</em> | 📅 <strong>${fechaFormateada}</strong> | ⏰ <strong>${cita.hora}</strong> <br><select class="select-estado" data-id="${cita.id}" style="padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; background: #fff; border: 1px solid #cbd5e1; margin-top: 5px;"><option value="pendiente" ${cita.estado === 'pendiente'? 'selected' : ''}>⏳ Pendiente</option><option value="completada" ${cita.estado === 'completada'? 'selected' : ''}>✅ Se Atendió</option><option value="cancelada" ${cita.estado === 'cancelada'? 'selected' : ''}>❌ No Asistió</option></select></td></tr>`; }); escucharCambiosEstado(); } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 25px; color: #64748b;">No hay citas médicas registradas.</td></tr>'; } } catch (error) {} }
+function escucharCambiosEstado() { const selectores = document.querySelectorAll('.select-estado'); selectores.forEach(select => { select.addEventListener('change', async (e) => { const idCita = e.target.getAttribute('data-id'); const nuevoEstado = e.target.value; try { const response = await fetch('/api/actualizar-estado-cita', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_cita: idCita, nuevo_estado: nuevoEstado }) }); const data = await response.json(); alert(data.message); if (data.success) { cargarEstadisticasClinica(); } } catch (error) {} }); }); }
+function configurarBuscadorAdmin() { const searchInput = document.getElementById('search-input'); if (!searchInput) return; searchInput.addEventListener('input', (e) => { const term = e.target.value.toLowerCase().trim(); const rows = document.querySelectorAll('#tabla-citas-body tr'); rows.forEach(row => { const textContenido = row.textContent.toLowerCase(); row.style.display = textContenido.includes(term)? '' : 'none'; }); }); }
+async function cargarMisCitasHoy(idPaciente) { try { const response = await fetch(`/api/mis-citas-hoy/${idPaciente}`); const data = await response.json(); const contenedor = document.getElementById('mis-citas-hoy-lista'); if (!contenedor) return; contenedor.innerHTML = ''; if (data.success && data.citas.length > 0) { data.citas.forEach(cita => { contenedor.innerHTML += `<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 10px; border-left: 5px solid #10b981; display: flex; justify-content: space-between; align-items: center; width: 100%;"><div><h4 style="color: #14532d; margin-bottom: 4px;">👨‍⚕️ ${cita.medico}</h4><p style="color: #166534; font-size: 0.88rem;">🩺 Especialidad: <strong>${cita.especialidad}</strong></p><p style="color: #14532d; font-size: 0.9rem; margin-top: 5px;">📅 Fecha: <strong>${cita.fecha}</strong> (Hoy) | ⏰ Hora: <strong>${cita.hora}</strong></p></div><span style="background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">${cita.estado}</span></div>`; }); } else { contenedor.innerHTML = `<p style="color: #64748b; font-size: 0.95rem; text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; width: 100%;">🏖️ No tienes ninguna cita médica programada para hoy.</p>`; } } catch (error) {} }
+function configurarBotonPDF() { const btnPdf = document.getElementById('btn-exportar-pdf'); if (!btnPdf) return; btnPdf.addEventListener('click', () => { const navbar = document.querySelector('.navbar'); const welcomeSection = document.querySelector('.welcome-section'); const statsContainer = document.querySelector('.stats-container'); const searchContainer = document.querySelector('.search-container'); const logoutBtn = document.getElementById('btn-logout'); if (navbar) navbar.style.display = 'none'; if (welcomeSection) welcomeSection.style.display = 'none'; if (statsContainer) statsContainer.style.display = 'none'; if (searchContainer) searchContainer.style.display = 'none'; if (btnPdf) btnPdf.style.display = 'none'; if (logoutBtn) logoutBtn.style.display = 'none'; const mainContainer = document.querySelector('.dashboard-container'); const headerImpresion = document.createElement('div'); headerImpresion.id = 'header-reporte-impresion'; headerImpresion.innerHTML = `<div style="text-align: center; margin-bottom: 30px; font-family: sans-serif; border-bottom: 3px solid #1e3a8a; padding-bottom: 15px;"><h1 style="color: #1e3a8a; margin: 0; font-size: 2rem;">🏥 PORTAL CLÍNICO SANITAS</h1><p style="color: #475569; margin: 5px 0 0; font-size: 1rem; font-weight: 600;">Reporte Oficial de Ocupación de Consultorios y Citas Médicas</p><p style="color: #64748b; margin: 5px 0 0; font-size: 0.85rem;">Fecha de Emisión: 07 de Octubre de 2026</p></div>`; if (mainContainer) mainContainer.insertBefore(headerImpresion, mainContainer.firstChild); window.print(); setTimeout(() => { if (navbar) navbar.style.display = 'flex'; if (welcomeSection) welcomeSection.style.display = 'block'; if (statsContainer) statsContainer.style.display = 'flex'; if (searchContainer) searchContainer.style.display = 'block'; if (btnPdf) btnPdf.style.display = 'inline-block'; if (logoutBtn) logoutBtn.style.display = 'inline-block'; if (headerImpresion) headerImpresion.remove(); }, 500); }); }
 </script>
 </body>
 </html>
